@@ -98,3 +98,22 @@ def load_logged_in_user():
         ).fetchone()
 
 
+# Create logout function by removing user id from session.
+@bp.route('/logout/')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+
+# Decorator function used to check if users are logged in.
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kargs):
+        if g.user is None:
+            return redirect(url_for('auth.login'))
+        
+        return view(**kargs)
+    
+    return wrapped_view
+
+
