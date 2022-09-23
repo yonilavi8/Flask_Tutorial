@@ -99,7 +99,7 @@ def load_logged_in_user():
 
 
 # Create logout function by removing user id from session.
-@bp.route('/logout/')
+@bp.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('index'))
