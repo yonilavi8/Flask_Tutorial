@@ -108,11 +108,11 @@ def logout():
 # Decorator function used to check if users are logged in.
 def login_required(view):
     @functools.wraps(view)
-    def wrapped_view(**kargs):
+    def wrapped_view(**kwargs):
         if g.user is None:
             return redirect(url_for('auth.login'))
         
-        return view(**kargs)
+        return view(**kwargs)
     
     return wrapped_view
 
