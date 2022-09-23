@@ -73,7 +73,7 @@ def login():
 
 
 # Register function that runs before view function, and checks if user id is stored in the session.
-@bp.before_app_first_request
+@bp.before_app_request
 def load_logged_in_user():
     user_id = session.get('user_id')
 
