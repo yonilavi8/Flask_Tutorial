@@ -1,5 +1,3 @@
-from urllib import response
-from venv import create
 from flaskr import create_app
 
 def test_config():
