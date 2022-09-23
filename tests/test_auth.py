@@ -1,4 +1,3 @@
-from urllib import response
 import pytest
 from flask import g, session
 from flaskr.db import get_db
@@ -13,7 +12,7 @@ def test_register(client, app):
 
     with app.app_context():
         assert get_db().execute(
-            "SELECF * FROM user WHERE username = 'a'",
+            "SELECT * FROM user WHERE username = 'a'",
         ).fetchone() is not None
     
 
