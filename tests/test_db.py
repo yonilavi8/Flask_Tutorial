@@ -1,5 +1,4 @@
 import sqlite3
-from typing_extensions import assert_type
 
 import pytest
 from flaskr.db import get_db
