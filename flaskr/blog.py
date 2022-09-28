@@ -22,6 +22,17 @@ def index():
     return render_template('blog/index.html', posts=posts)
 
 
+def get_post_title(title):
+    post = get_db().execute(
+        'SELECT p.id, title, body, created, author_id, username'
+        ' FROM post p JOIN user u ON p.author_id = u.id'
+        ' WHERE title = ?',
+        (title,)
+    ).fetchall()
+
+    return post
+
+
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
 def create():
@@ -37,6 +48,10 @@ def create():
             ip = ipaddress.ip_address(body)
         except ValueError:
             error = 'Not valid ip address.'
+
+        if get_post_title(title):
+            error = 'A card with this title already exists'
+            print(get_post_title(title))
 
         if error is not None:
             flash(error)
@@ -83,6 +98,11 @@ def update(id):
         if not title:
             error = 'Title is required.'
         
+        try:
+            ip = ipaddress.ip_address(body)
+        except ValueError:
+            error = 'Not valid ip address.'
+
         if error is not None:
             flash(error)
         else:
