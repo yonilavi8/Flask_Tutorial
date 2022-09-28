@@ -6,6 +6,8 @@ from werkzeug.exceptions import abort
 from flaskr.auth import login_required
 from flaskr.db import get_db
 
+import ipaddress
+
 bp = Blueprint('blog', __name__)
 
 
@@ -30,6 +32,9 @@ def create():
 
         if not title:
             error = 'Title is required.'
+
+        if not isinstance(body, int):
+            error = 'Integer input only'
         
         if error is not None:
             flash(error)
