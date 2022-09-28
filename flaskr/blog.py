@@ -33,9 +33,11 @@ def create():
         if not title:
             error = 'Title is required.'
 
-        if not isinstance(body, int):
-            error = 'Integer input only'
-        
+        try:
+            ip = ipaddress.ip_address(body)
+        except ValueError:
+            error = 'Not valid ip address.'
+
         if error is not None:
             flash(error)
         else:
