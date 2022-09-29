@@ -22,15 +22,35 @@ def index():
     return render_template('blog/index.html', posts=posts)
 
 
+def check_duplicate(title, body):
+    post = get_db().execute(
+        'SELECT title, body'
+        ' FROM post p JOIN user u ON p.author_id = u.id'
+        ' WHERE title = ? AND body = ?',
+        (title, body,)
+    ).fetchall()
+
+    return post
+
 def check_title(title):
     post = get_db().execute(
         'SELECT title'
         ' FROM post p JOIN user u ON p.author_id = u.id'
         ' WHERE title = ?',
-        (title,)
+        (title, )
     ).fetchall()
 
     return post
+
+def get_id(title):
+    id = get_db().execute(
+        'SELECT p.id'
+        ' FROM post p JOIN user u ON p.author_id = u.id'
+        ' WHERE title = ?',
+        (title, )
+    ).fetchone()
+
+    return id[0]
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -49,11 +69,30 @@ def create():
         except ValueError:
             error = 'Not valid ip address.'
 
-        if check_title(title):
-            error = 'A card with this title already exists'
+        if check_duplicate(title, body):
+            error = 'A card with this label and ip address already exists'
 
         if error is not None:
             flash(error)
+        elif check_title(title):
+            id = get_id(title)
+            db = get_db()
+            old_body = db.execute(
+                'SELECT body'
+                ' FROM post p JOIN user u ON p.author_id = u.id'
+                ' WHERE p.id = ?',
+                (id, )
+            ).fetchone()
+
+            new_body = old_body[0] + ' ' + body
+
+            db.execute(
+                'UPDATE post SET body = ?'
+                ' WHERE id = ?',
+                (new_body, id)
+            )
+            db.commit()
+            return redirect(url_for('blog.index'))
         else:
             db = get_db()
             db.execute(
@@ -98,7 +137,7 @@ def update(id):
             error = 'Title is required.'
         
         try:
-            ip = ipaddress.ip_address(body)
+            ipaddress.ip_address(body)
         except ValueError:
             error = 'Not valid ip address.'
 
