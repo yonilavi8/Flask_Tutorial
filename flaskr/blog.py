@@ -10,22 +10,22 @@ import pandas as pd
 
 bp = Blueprint('blog', __name__)
 
-
-@bp.route('/')
-def index():
+def db_to_dataframe():
     db = get_db()
-    posts = db.execute(
-        'SELECT p.id, title, body, created, author_id, username'
-        ' FROM post p JOIN user u ON p.author_id = u.id'
-        ' ORDER BY created DESC'
-    ).fetchall()
     post_df = pd.read_sql_query("SELECT * FROM post", db)
 
     post_df['body']= post_df.groupby(['title'])['body'].transform(lambda x: ' '.join(x))
     new_df = post_df.sort_values(by='created', ascending=True).drop_duplicates('title', keep='last')
-    new_posts = new_df.sort_values(by='created', ascending=False).to_dict('records')
 
-    return render_template('blog/index.html', posts=new_posts)
+    return new_df
+
+
+@bp.route('/')
+def index():
+    new_df = db_to_dataframe()
+    new_posts_dict =  new_df.sort_values(by='created', ascending=False).to_dict('records')
+
+    return render_template('blog/index.html', posts=new_posts_dict)
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -61,6 +61,8 @@ def get_post(id, check_author=True):
         ' WHERE p.id = ?',
         (id,)
     ).fetchone()
+    # df = db_to_dataframe()
+    # post = df.loc[df['id']==id]
 
     if post is None:
         abort(404, f"Post id {id} doesn't exist")
