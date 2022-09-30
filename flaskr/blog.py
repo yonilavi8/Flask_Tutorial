@@ -6,6 +6,8 @@ from werkzeug.exceptions import abort
 from flaskr.auth import login_required
 from flaskr.db import get_db
 
+import pandas as pd
+
 bp = Blueprint('blog', __name__)
 
 
@@ -17,7 +19,13 @@ def index():
         ' FROM post p JOIN user u ON p.author_id = u.id'
         ' ORDER BY created DESC'
     ).fetchall()
-    return render_template('blog/index.html', posts=posts)
+    post_df = pd.read_sql_query("SELECT * FROM post", db)
+
+    post_df['body']= post_df.groupby(['title'])['body'].transform(lambda x: ' '.join(x))
+    new_df = post_df.sort_values(by='created', ascending=True).drop_duplicates('title', keep='last')
+    new_posts = new_df.sort_values(by='created', ascending=False).to_dict('records')
+
+    return render_template('blog/index.html', posts=new_posts)
 
 
 @bp.route('/create', methods=('GET', 'POST'))
