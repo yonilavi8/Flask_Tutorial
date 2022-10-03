@@ -21,13 +21,21 @@ def index():
     return render_template('blog/index.html', posts=posts)
 
 
-def check_duplicate(title, body):
-    post = get_db().execute(
-        'SELECT title, body'
-        ' FROM post p JOIN user u ON p.author_id = u.id'
-        ' WHERE title = ? AND body = ?',
-        (title, body,)
-    ).fetchall()
+def check_duplicate(title, body, id=None):
+    if id is None:
+        post = get_db().execute(
+            'SELECT title, body'
+            ' FROM post p JOIN user u ON p.author_id = u.id'
+            ' WHERE title = ? AND body = ?',
+            (title, body,)
+        ).fetchall()
+    else:
+        post = get_db().execute(
+            'SELECT title, body, p.id'
+            ' FROM post p JOIN user u ON p.author_id = u.id'
+            ' WHERE title = ? AND body = ? AND p.id != ?',
+            (title, body, id)
+        ).fetchall()
 
     return post
 
@@ -96,6 +104,15 @@ def update(id):
 
         if not title:
             error = 'Title is required.'
+
+        try:
+            ipaddress.ip_address(body)
+        except ValueError:
+            error = 'Not valid ip address.'
+
+        # print(check_duplicate(title, body))
+        if check_duplicate(title, body, id):
+            error = 'A card with this label and ip address already exists'
         
         if error is not None:
             flash(error)
