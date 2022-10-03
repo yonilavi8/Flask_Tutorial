@@ -2,6 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
+import ipaddress
 
 from flaskr.auth import login_required
 from flaskr.db import get_db
@@ -20,6 +21,17 @@ def index():
     return render_template('blog/index.html', posts=posts)
 
 
+def check_duplicate(title, body):
+    post = get_db().execute(
+        'SELECT title, body'
+        ' FROM post p JOIN user u ON p.author_id = u.id'
+        ' WHERE title = ? AND body = ?',
+        (title, body,)
+    ).fetchall()
+
+    return post
+
+
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
 def create():
@@ -30,6 +42,15 @@ def create():
 
         if not title:
             error = 'Title is required.'
+
+        try:
+            ipaddress.ip_address(body)
+        except ValueError:
+            error = 'Not valid ip address.'
+
+        if check_duplicate(title, body):
+            error = 'A card with this label and ip address already exists'
+
         
         if error is not None:
             flash(error)
